@@ -39,6 +39,7 @@ while (client_socket = server.accept)
             result = HttpHandler.processRequest(socket)
             break if result == "break" 
         end
+        puts "Closing Connection"
         socket.close
     end
 end
