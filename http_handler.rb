@@ -2,17 +2,21 @@ module HttpHandler
   require_relative "parser"
   require_relative "router"
 
-  def self.response(socket, statusCode, message, headers)
+  def self.response(socket, statusCode, message, headers, body)
       response_headers = [
         "HTTP/1.1 #{statusCode.to_s} #{message}",
-        "Content-Length: #{message.length}",
+        "Content-Length: #{body.length}",
       ]
       if headers["connection"]&.downcase == "close"
         response_headers << "Connection: close"
       else
         response_headers << "Connection: keep-alive"
       end
-      body = "\r\n\r\n#{message}"
+
+      if headers["content-type"]
+        response_headers << "Content-Type: text/plain"
+      end
+      body = "\r\n\r\n#{body}"
       socket.write(response_headers.join("\r\n") + body)
   end
 
@@ -24,28 +28,30 @@ module HttpHandler
           Logger.logRequest(requestLine)
           @headers = Parser.parseHeaders(socket)
           body = Parser.parseBody(socket, @headers)
-
-          handler = Router.routes[[requestLine[:method], requestLine[:target]]]
+          #handler = Router.routes[[requestLine[:method], requestLine[:target]]]
+          #if handler
+          #  handler.call(socket, @headers)
+          handler, data = Router.match(requestLine[:method], requestLine[:target])  
           if handler
-            handler.call(socket, @headers)
+            handler.call(socket, @headers, data)
           else
             puts "ProcessRequest => Error: 404 Not Found"
             message = "Not Found"
             statusCode = 404
-            response(socket, statusCode, message, @headers)
+            response(socket, statusCode, message, @headers, "")
             return "break"
           end
       rescue Parser::InvalidHTTPVersionError => e
           puts "ProcessRequest => Error: #{e.message}"
           message = "HTTP Version Not Supported"
           statusCode = 505
-          response(socket, statusCode, message, @headers)
+          response(socket, statusCode, message, @headers, "")
           return "break"
       rescue Parser::InvalidHTTPMethodError => e
           puts "ProcessRequest => Error: #{e.message}"
           message = "Method Not Allowed"
           statusCode = 405
-          response(socket, statusCode, message, @headers)
+          response(socket, statusCode, message, @headers, "")
           return "break"
       rescue Parser::MalformedRequestLineError => e
           puts "ProcessRequest => Error: #{e.message}"
@@ -54,10 +60,11 @@ module HttpHandler
           socket.write("HTTP/1.1 400 #{message}\r\nContent-Length: #{malformed_request_msg.length}\r\n\r\n#{malformed_request_msg}") rescue EmptyRequestLineError => e
           return "break"
       rescue => e
+          puts e
           puts "ProcessRequest => Error: #{e.message}"
           message = "Bad Request"
           statusCode = 400
-          response(socket, statusCode, message, @headers)
+          response(socket, statusCode, message, @headers, "")
           return "break"
       end
 

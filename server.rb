@@ -6,31 +6,39 @@ require_relative 'db'
 require_relative 'logger'
 require_relative 'http_handler'
 
-
 server = TCPServer.new("localhost", 4221)
 puts "Listening on port 4221..."
 
-Router.get("/test", -> (socket, headers) {
-    HttpHandler.response(socket, 200, "test", headers)
+Router.get("/test", -> (socket, headers, data) {
+    HttpHandler.response(socket, 200, "test", headers, "test")
 })
 
-Router.get("/hello", -> (socket, headers) {
-    HttpHandler.response(socket, 200, "Hello World!", headers)
+Router.get("/hello", -> (socket, headers, data) {
+    HttpHandler.response(socket, 200, "Hello World!", headers, "Hello World!")
 })
 
-Router.get("/user", -> (socket, headers) {
-    user = Db.fakeDB[:user]
-    if user == nil
-        HttpHandler.response(socket, 404, "", headers)
-    else
-        HttpHandler.response(socket, 200, user[:name], headers)
-    end
+Router.get("/user", -> (socket, headers, data) {
+  user = Db.fakeDB[:user]
+  if user == nil
+      HttpHandler.response(socket, 404, "", headers, "")
+  else
+      HttpHandler.response(socket, 200, user[:name], headers, user[:name])
+  end
 })
 
-Router.post("/user", -> (socket, headers) {
-    Db.fakeDB[:user][:name] = "fake-user"
-    Db.fakeDB[:user][:password] = "fake-password"
-    HttpHandler.response(socket, 200, Db.fakeDB[:user][:name], headers)
+Router.get("/", -> (socket, headers, data) {
+  HttpHandler.response(socket, 200, "OK", headers, "") 
+})
+
+Router.post("/user", -> (socket, headers, data) {
+  Db.fakeDB[:user][:name] = "fake-user"
+  Db.fakeDB[:user][:password] = "fake-password"
+  HttpHandler.response(socket, 200, Db.fakeDB[:user][:name], headers, Db.fakeDB[:user][:name])
+})
+
+Router.get("/echo/*", -> (socket, headers, data) {
+  headers["content-type"] = "text/plain"
+  HttpHandler.response(socket, 200, "OK", headers, data)
 })
 
 while (client_socket = server.accept)
@@ -39,7 +47,6 @@ while (client_socket = server.accept)
             result = HttpHandler.processRequest(socket)
             break if result == "break" 
         end
-        puts "Closing Connection"
         socket.close
     end
 end

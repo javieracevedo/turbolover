@@ -8,6 +8,7 @@ module Parser
 
   def self.parseRequestLine(socket)
       requestLine = socket.gets
+      puts requestLine
       raise EmptyRequestLineError if requestLine.nil?
 
       parts = requestLine.strip.split(" ")
