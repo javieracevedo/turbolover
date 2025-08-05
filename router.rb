@@ -21,9 +21,8 @@ module Router
     puts target.strip.split("/").inspect
     target_first_resource = "\/#{target.split("/")[1]}" 
     target_last_resource = target.split("/").last 
-    puts "BLAH " + target_first_resource
-    match = @routes.find do |(method, path), _handler|
-      path.start_with?(target_first_resource)
+    match = @routes.find do |(route_method, path), _handler|
+      path.start_with?(target_first_resource) and route_method == method 
     end 
 
     if match

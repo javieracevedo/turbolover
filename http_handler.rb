@@ -14,7 +14,21 @@ module HttpHandler
       end
 
       if headers["content-type"]
-        response_headers << "Content-Type: text/plain"
+        response_headers << "Content-Type: #{headers["content-type"]}"
+      end
+
+      puts headers["accept-encoding"]
+      valid_encodings = ["gzip"]
+      if headers["accept-encoding"]
+        encoding = headers["accept-encoding"]
+        encoding_list = headers["accept-encoding"]
+          .split(",")
+          .map(&:strip)
+          .select{ |e| valid_encodings.include?(e) }
+        
+        if encoding_list.length > 0
+          response_headers << "Content-Encoding: #{encoding_list.join(",")}"
+        end
       end
       body = "\r\n\r\n#{body}"
       socket.write(response_headers.join("\r\n") + body)
@@ -28,12 +42,9 @@ module HttpHandler
           Logger.logRequest(requestLine)
           @headers = Parser.parseHeaders(socket)
           body = Parser.parseBody(socket, @headers)
-          #handler = Router.routes[[requestLine[:method], requestLine[:target]]]
-          #if handler
-          #  handler.call(socket, @headers)
           handler, data = Router.match(requestLine[:method], requestLine[:target])  
           if handler
-            handler.call(socket, @headers, data)
+            handler.call(socket, @headers, data, body)
           else
             puts "ProcessRequest => Error: 404 Not Found"
             message = "Not Found"
