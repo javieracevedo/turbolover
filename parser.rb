@@ -1,5 +1,5 @@
 module Parser
-  VALID_HTTP_METHODS = %w[GET POST PUT DELETE HEAD OPTIONS PATCH]
+  VALID_HTTP_METHODS = %w[GET POST PUT DELETE]
 
   class InvalidHTTPVersionError < StandardError; end
   class InvalidHTTPMethodError < StandardError; end
