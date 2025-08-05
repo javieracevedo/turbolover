@@ -7,30 +7,24 @@ module HttpHandler
         "HTTP/1.1 #{statusCode.to_s} #{message}",
         "Content-Length: #{body.length}",
       ]
-      if headers["connection"]&.downcase == "close"
+     
+      if headers["connection"] == "close"
         response_headers << "Connection: close"
       else
         response_headers << "Connection: keep-alive"
       end
 
-      if headers["content-type"]
+      valid_content_types = %w[text/plain, application/json, application/octet-stream]
+      if headers["content-type"] && valid_content_types.include?(headers["content-type"])
         response_headers << "Content-Type: #{headers["content-type"]}"
       end
 
-      puts headers["accept-encoding"]
-      valid_encodings = ["gzip"]
-      if headers["accept-encoding"]
-        encoding = headers["accept-encoding"]
-        encoding_list = headers["accept-encoding"]
-          .split(",")
-          .map(&:strip)
-          .select{ |e| valid_encodings.include?(e) }
-        
-        if encoding_list.length > 0
-          response_headers << "Content-Encoding: #{encoding_list.join(",")}"
-        end
+      if headers["accept-encoding"] == "gzip"
+        response_headers << "Content-Encoding: #{headers["accept-encoding"]}"
       end
+
       body = "\r\n\r\n#{body}"
+     
       socket.write(response_headers.join("\r\n") + body)
   end
 
@@ -79,7 +73,7 @@ module HttpHandler
           return "break"
       end
 
-      @connection_header = @headers["connection"]&.downcase
+      @connection_header = @headers["connection"]
       if @connection_header == "close"
         return "break"
       end
