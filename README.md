@@ -14,9 +14,9 @@ I'm building this for educational purposes only. Nothing is meant to be optimize
 - [x] Accept Accept-Encoding header and respond with Content-Enconding header (Only accepts gzip as valid encoding)
 - [x] Only accepts Content-Type header as `text/plain`, `application/json`, and `application/octet-stream` (only in response)
 - [x] Send well-formed HTTP responses, including status line, headers, and body.
-- [ ] Expose a simple callback/handler interface such that the server calls something like: `onRequest({ method, path, headers, rawBody }, respond)`
+- [x] Expose a simple callback/handler interface such that the server calls something like: `onRequest({ method, path, headers, rawBody }, respond)`
 - [ ] Graceful error handling for malformed requests
     - [ ] 400 Bad Request (Parsing Errors: request line, headers, body | Content-Length header is invalid) 
     - [ ] 505 Unsupported Version (HTTP Version Not Supported)
 - [ ] Read the raw request body (as bytes / Buffer / string) according to headers like Content-Length and Transfer-Encoding: chunked.
-
+- [ ] Package the server so it can be used as a library
