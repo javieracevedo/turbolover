@@ -28,7 +28,7 @@ module HttpHandler
       socket.write(response_headers.join("\r\n") + body)
   end
 
-  def self.processRequest(socket) 
+  def self.processRequest(socket, onRequest) 
       @headers = {}
       @connection_header = ""
       begin
@@ -36,16 +36,14 @@ module HttpHandler
           Logger.logRequest(requestLine)
           @headers = Parser.parseHeaders(socket)
           body = Parser.parseBody(socket, @headers)
-          handler, data = Router.match(requestLine[:method], requestLine[:target])  
-          if handler
-            handler.call(socket, @headers, data, body)
-          else
-            puts "ProcessRequest => Error: 404 Not Found"
-            message = "Not Found"
-            statusCode = 404
-            response(socket, statusCode, message, @headers, "")
-            return "break"
-          end
+          requestData = {
+            requestLine: requestLine,
+            headers: @headers,
+            body: @body
+          }
+
+          response_proc = method(:response).to_proc
+          onRequest.call(socket, requestData, response_proc)
       rescue Parser::InvalidHTTPVersionError => e
           puts "ProcessRequest => Error: #{e.message}"
           message = "HTTP Version Not Supported"

@@ -88,10 +88,16 @@ Router.post("/files/*", -> (socket, headers, data, body="") {
   HttpHandler.response(socket, 201, "Created", headers, "")
 })
 
+onRequest = -> (socket, requestData, response) {
+  if requestData[:requestLine][:method] == "GET"
+    response.call(socket, 200, "OK", requestData[:headers], "Hello World\n")
+  end
+}
+
 while (client_socket = server.accept)
     Thread.new(client_socket) do |socket|
         loop do
-            result = HttpHandler.processRequest(socket)
+            result = HttpHandler.processRequest(socket, onRequest)
             break if result == "break" 
         end
         socket.close
