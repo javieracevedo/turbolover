@@ -1,6 +1,5 @@
 module HttpHandler
   require_relative "parser"
-  require_relative "router"
 
   def self.response(socket, statusCode, message, headers, body)
     response_headers = [
