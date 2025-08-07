@@ -89,9 +89,7 @@ Router.post("/files/*", -> (socket, headers, data, body="") {
 })
 
 onRequest = -> (socket, requestData, response) {
-  if requestData[:requestLine][:method] == "GET"
-    response.call(socket, 200, "OK", requestData[:headers], "Hello World\n")
-  end
+  response.call(socket, 200, "OK", requestData[:headers], requestData[:body])
 }
 
 while (client_socket = server.accept)
