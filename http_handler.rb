@@ -60,13 +60,23 @@ module HttpHandler
           puts "ProcessRequest => Error: #{e.message}"
           message = "Malformed Request Line"
           statusCode = 400
-          socket.write("HTTP/1.1 400 #{message}\r\nContent-Length: #{malformed_request_msg.length}\r\n\r\n#{malformed_request_msg}") rescue EmptyRequestLineError => e
+          socket.write("HTTP/1.1 400 #{message}\r\nContent-Length: #{malformed_request_msg.length}\r\n\r\n#{malformed_request_msg}") 
+      rescue Parser::EmptyRequestLineError => e
           return "break"
-      rescue => e
-          puts e
+      rescue Parser::TimeoutError => e
           puts "ProcessRequest => Error: #{e.message}"
-          message = "Bad Request"
-          statusCode = 400
+          message = "Request Timeout"
+          statusCode = 408
+          response(socket, statusCode, message, @headers, message)
+      rescue Parser::SocketReadError => e
+          puts "ProcessRequest => Error: #{e.message}"
+          message = "Internal Server Error"
+          statusCode = 500 
+          response(socket, statusCode, message, @headers, e.message)
+      rescue => e
+          puts "ProcessRequest => Error: #{e.message}"
+          message = "Internal Server Error"
+          statusCode = 500
           response(socket, statusCode, message, @headers, "")
           return "break"
       end

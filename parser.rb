@@ -5,13 +5,14 @@ module Parser
   class InvalidHTTPMethodError < StandardError; end
   class MalformedRequestLineError < StandardError; end
   class EmptyRequestLineError < StandardError; end
+  class SocketReadError < StandardError; end
+  class TimeoutError < StandardError; end
 
   def self.parseRequestLine(socket)
-      requestLine = socket.gets
-      puts requestLine
+      requestLine = socket.gets 
       raise EmptyRequestLineError if requestLine.nil?
 
-      parts = requestLine.strip.split(" ")
+      parts = requestLine.strip.split("\r\n").first.split(" ")
       if parts.size < 3 || parts.size > 3
           raise MalformedRequestLineError, "MalformedRequestLineError: expected 3 parts, got #{parts.size}"
       end
@@ -53,8 +54,31 @@ module Parser
 
   def self.parseBody(socket, headers)
     content_length = headers["content-length"].to_i
-    return nil if content_length == 0
-    body = socket.read(content_length)
+    return nil if content_length <= 0
+
+    begin
+      socket.read_timeout = 5
+    rescue NoMethodError
+      require 'timeout'
+    end
+
+    body = +""
+    remaining = content_length
+    begin
+      Timeout.timeout(5) do
+        while remaining > 0
+          chunk = socket.readpartial([remaining, 1024].min)
+          break if chunk.nil? || chunk.empty?
+          body << chunk
+          remaining -= chunk.bytesize
+        end
+      end
+    rescue Timeout::Error
+      raise TimeoutError, "Timeout while reading body"
+    rescue => e
+      raise SocketReadError, "Failed to read request body: #{e.message}"
+    end
+
     return body
   end
 end
