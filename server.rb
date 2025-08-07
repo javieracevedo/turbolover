@@ -25,7 +25,7 @@ ARGV.each_with_index do |arg, i|
 end
 
 server = TCPServer.new("localhost", 4221)
-puts "Listening on port 4221..."
+Logger.message("Listening on port 4221\n")
 
 Router.get("/test", -> (socket, headers, data) {
     HttpHandler.response(socket, 200, "test", headers, "test")

@@ -24,7 +24,7 @@ module Parser
       end
 
       unless version.start_with?("HTTP/1.1")
-          raise InvalidHTTPVersionError, "InvalidHTTPVersionError"
+          raise InvalidHTTPVersionError, "InvalidHTTPVersionError: #{version}"
       end
 
       splittedRequestLine = requestLine.split(" ").inspect
