@@ -4,10 +4,13 @@ module HttpHandler
 
   def self.response(socket, statusCode, message, headers, body)
       response_headers = [
-        "HTTP/1.1 #{statusCode.to_s} #{message}",
-        "Content-Length: #{body.length}",
+        "HTTP/1.1 #{statusCode.to_s} #{message}"
       ]
-     
+
+      if body
+        response_headers << "Content-Length: #{body.length}"
+      end
+      
       if headers["connection"] == "close"
         response_headers << "Connection: close"
       else
@@ -39,7 +42,7 @@ module HttpHandler
           requestData = {
             requestLine: requestLine,
             headers: @headers,
-            body: @body
+            body: body
           }
 
           response_proc = method(:response).to_proc

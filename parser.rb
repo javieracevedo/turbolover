@@ -52,7 +52,7 @@ module Parser
       return headers
   end
 
-  def self.parseBody(socket, headers)
+  def self.parseFixedLengthBody(socket, headers)
     content_length = headers["content-length"].to_i
     return nil if content_length <= 0
 
@@ -80,5 +80,57 @@ module Parser
     end
 
     return body
+  end
+
+  def self.parseChunkedBody(socket, headers)
+    begin
+      socket.read_timeout = 5
+    rescue NoMethodError
+      require 'timeout'
+    end
+
+    body = +""
+
+    begin
+      Timeout.timeout(5) do
+        loop do
+          line = readLine(socket)
+          chunkSize = line.to_i(16)
+          break if chunkSize == 0
+          
+          chunk = socket.read(chunkSize)
+          body << chunk
+          socket.read(2)
+        end
+
+        while (line = readLine(socket)) && !line.strip.empty?
+        end
+      end
+    rescue Timeout::Error
+      raise TimeoutError, "Timeout while reading chunked body"
+    rescue => e
+      raise SocketReadError, "Failed to read chunked body: #{e.message}"
+
+    end
+
+    return body
+  end
+
+  def self.readLine(socket)
+    line = +""
+    while (char = socket.read(1))
+      line << char
+      break if line.end_with?("\r\n")
+    end
+    return line
+  end
+
+  def self.parseBody(socket, headers)
+    if headers["transfer-encoding"]&.downcase == "chunked"
+      return parseChunkedBody(socket, headers)
+    elsif headers["transfer-encoding"]&.downcase == "content-length"
+      return parseFixLengthBody(socket, headers)
+    end
+    return nil
   end
 end
