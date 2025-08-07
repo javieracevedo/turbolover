@@ -18,6 +18,7 @@ I'm building this for educational purposes only. Nothing is meant to be optimize
 - [x] Graceful error handling for malformed requests
     - [x] 400 Bad Request (Parsing Errors: request line, headers, body | Content-Length header is invalid) 
     - [x] 505 Unsupported Version (HTTP Version Not Supported)
-- [ ] Read the raw request body (as bytes / Buffer / string) according to headers like Content-Length and Transfer-Encoding: chunked.
-- [ ] Test suite with all the cases above
+- [x] Read the raw request body (as bytes / Buffer / string) according to headers like Content-Length and Transfer-Encoding: chunked.
+- [ ] Improve the logger module and use it in place of regular puts calls
+- [ ] Test suite for all the cases above
 - [ ] Package the server so it can be used as a library
