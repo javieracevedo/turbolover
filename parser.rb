@@ -9,33 +9,33 @@ module Parser
   class TimeoutError < StandardError; end
 
   def self.parseRequestLine(socket)
-      requestLine = socket.gets 
-      raise EmptyRequestLineError if requestLine.nil?
+    requestLine = socket.gets 
+    raise EmptyRequestLineError if requestLine.nil?
 
-      parts = requestLine.strip.split("\r\n").first.split(" ")
-      if parts.size < 3 || parts.size > 3
-          raise MalformedRequestLineError, "MalformedRequestLineError: expected 3 parts, got #{parts.size}"
-      end
+    parts = requestLine.strip.split("\r\n").first.split(" ")
+    if parts.size < 3 || parts.size > 3
+        raise MalformedRequestLineError, "MalformedRequestLineError: expected 3 parts, got #{parts.size}"
+    end
 
-      method, target, version = parts
+    method, target, version = parts
 
-      unless VALID_HTTP_METHODS.include?(method)
-          raise InvalidHTTPMethodError, "InvalidHTTPMethodError: #{method}"
-      end
+    unless VALID_HTTP_METHODS.include?(method)
+        raise InvalidHTTPMethodError, "InvalidHTTPMethodError: #{method}"
+    end
 
-      unless version.start_with?("HTTP/1.1")
-          raise InvalidHTTPVersionError, "InvalidHTTPVersionError: #{version}"
-      end
+    unless version.start_with?("HTTP/1.1")
+        raise InvalidHTTPVersionError, "InvalidHTTPVersionError: #{version}"
+    end
 
-      splittedRequestLine = requestLine.split(" ").inspect
+    splittedRequestLine = requestLine.split(" ").inspect
 
-      return {
-          method: method,
-          target: target,
-          version: version
-      }
+    return {
+        method: method,
+        target: target,
+        version: version
+    }
 
-      raise "Failed to parse request line: #{e.message}"
+    raise "Failed to parse request line: #{e.message}"
   end
 
   def self.parseHeaders(socket)
@@ -110,7 +110,6 @@ module Parser
       raise TimeoutError, "Timeout while reading chunked body"
     rescue => e
       raise SocketReadError, "Failed to read chunked body: #{e.message}"
-
     end
 
     return body
@@ -128,8 +127,8 @@ module Parser
   def self.parseBody(socket, headers)
     if headers["transfer-encoding"]&.downcase == "chunked"
       return parseChunkedBody(socket, headers)
-    elsif headers["transfer-encoding"]&.downcase == "content-length"
-      return parseFixLengthBody(socket, headers)
+    else
+      return parseFixedLengthBody(socket, headers)
     end
     return nil
   end
