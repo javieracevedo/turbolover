@@ -34,5 +34,5 @@ test_request 'POST /path HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunk
 test_request 'POST /path HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\nTransfer-Encoding: chunked\r\n\r\n4\r\nWiki\r\n5\r\npedia\r\n0\r\n\r\n' "200 OK" ""
 test_request 'POST /path HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\nContent-Length: 9\r\n\r\nWikipedia' "200 OK" ""
 test_request 'GET / \r\nConnection: close\r\n\r\n' "^HTTP/1.1 400 Bad Request" "Malformed Request Line"
-test_request 'GET / HTTP/1.2\r\nConnection: close\r\n\r\n' "^HTTP/1.1 50 HTTP Version Not Supported" ""
+test_request 'GET / HTTP/1.2\r\nConnection: close\r\n\r\n' "^HTTP/1.1 505 HTTP Version Not Supported" ""
 
