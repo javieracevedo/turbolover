@@ -21,4 +21,4 @@ I'm building this for educational purposes only. Nothing is meant to be optimize
 - [x] Read the raw request body (as bytes / Buffer / string) according to headers like Content-Length and Transfer-Encoding: chunked.
 - [x] Improve the logger module and use it in place of regular puts calls.
 - [x] Test suite for all the cases above.
-- [ ] Package the server so it can be used as a library.
+- [x] Package the server so it can be used as a library.
